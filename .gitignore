@@ -1,0 +1,9 @@
+node_modules/
+client/dist/
+coverage/
+reports/
+.stryker-tmp/
+tmp/
+*.log
+.env
+.DS_Store

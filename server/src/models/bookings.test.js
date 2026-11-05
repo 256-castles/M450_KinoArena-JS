@@ -14,9 +14,9 @@ describe("validateBooking", () => {               // ③ group of tests
     
     // Assert: check the result
     expect(errors.any).toBe(false);
-});
+  });
 
-it("adds an error when the showtime is missing", () => {
+  it("adds an error when the showtime is missing", () => {
     // Arrange:
     const showtime = null;
     const seat = { id: 3, auditorium_id: 7 };
@@ -26,4 +26,16 @@ it("adds an error when the showtime is missing", () => {
     // Assert:
     expect(errors.on("showtime")).toEqual([MESSAGES.blank]);
   });
+
+  it("adds an error when the seat is missing", () => {
+    //Arrange
+    const showtime = { id: 1, auditorium_id: 7 };
+    const seat = null;
+    const booking = { qr_code_token: "abc-123", total_price: 15, payment_method: "twint" };
+    //Act
+    const errors = validateBooking(booking, {seat, showtime});
+    //Assert
+    expect(errors.on("seat")).toEqual([MESSAGES.blank]);
+  });
+
 });

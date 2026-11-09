@@ -8,8 +8,9 @@ function getValidShowtime() {
 function getValidSeat() {
   return { id: 3, auditorium_id: 7 };
 }
-function getValidBooking() {
-  return { qr_code_token: "abc-123", total_price: 15, payment_method: "twint" };
+function getValidBooking(overrides = {}) {
+  const def = { qr_code_token: "abc-123", total_price: 15, payment_method: "twint" };
+  return {...def, ...overrides};
 }
 
 describe("validateBooking", () => {                     // group of tests
@@ -50,4 +51,17 @@ describe("validateBooking", () => {                     // group of tests
     expect(errors.attributeNames).toEqual(["seat"]);
   });
 
+  it("adds an error when the seat is already taken", () => {
+    // Arrange: prepare the input
+    const showtime = getValidShowtime();
+    const seat = getValidSeat();
+    const booking = getValidBooking();
+
+    //Act
+    const errors = validateBooking(booking, {seat, showtime, seatTaken: true});
+    //Assert
+    expect(errors.on("seat_id")).toEqual(["ist für diese Vorstellung bereits gebucht"]);
+    expect(errors.attributeNames).toEqual(["seat_id"]);
+    expect(errors.fullMessages()).toEqual(["Sitzplatz ist für diese Vorstellung bereits gebucht"]);
+  });
 });

@@ -51,6 +51,33 @@ describe("validateBooking", () => {                     // group of tests
     expect(errors.attributeNames).toEqual(["seat"]);
   });
 
+  it("adds an error when the qr-code-token is missing", () => {
+    // Arrange: prepare the input
+    const showtime = getValidShowtime();
+    const seat = getValidSeat();
+    const booking = getValidBooking({qr_code_token: null});
+    
+    // Act: call the function
+    const errors = validateBooking(booking, { seat, showtime });
+
+    expect(errors.on("qr_code_token")).toEqual([MESSAGES.blank]);
+    expect(errors.attributeNames).toEqual(["qr_code_token"]);
+  });
+
+  it("adds an error when the token is already taken", () => {
+    // Arrange: prepare the input
+    const showtime = getValidShowtime();
+    const seat = getValidSeat();
+    const booking = getValidBooking();
+
+    //Act
+    const errors = validateBooking(booking, {seat, showtime, tokenTaken: true});
+
+    //Assert
+    expect(errors.on("qr_code_token")).toEqual([MESSAGES.taken]);
+    expect(errors.attributeNames).toEqual(["qr_code_token"]);
+  });
+
   it("adds an error when the seat is already taken", () => {
     // Arrange: prepare the input
     const showtime = getValidShowtime();

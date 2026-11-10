@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+  # M450 LB1 / Teil 5: zusaetzlich zeitgesteuert, jede Nacht um 02:00 UTC.
+  schedule:
+    - cron: "0 2 * * *"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit-Tests mit Coverage
+        run: npm run test:coverage
+
+      # M450 LB1 / Teil 3: bricht ab, sobald ein Mutant ueberlebt (break = 100).
+      - name: Mutationstests (LB1-Units)
+        run: npm run test:mutation:lb1
+
+      - name: Berichte sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            coverage
+            reports/mutation
+          if-no-files-found: ignore

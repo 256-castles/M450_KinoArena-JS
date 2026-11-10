@@ -17,6 +17,9 @@
 
 **Technologie:** Node.js 22, Express 5, React 19, MariaDB, Knex, Vitest 5, Stryker 10.
 
+**E-Mail-Bestätigung an die Lehrperson** (Betreff `M450 <Klasse> Software`, CC an Teampartner):
+_Datum des Versands eintragen._
+
 ### Projekt starten
 
 ```bash
@@ -43,13 +46,13 @@ Demo-Login: `admin@kinoarena.test` / `password123`
 | Teil 4 – TDD | [`statsService.js`](../server/src/services/statsService.js) | [`statsService.test.js`](../server/src/services/statsService.test.js) | 18 |
 | Teil 5 – Automatisierung | – | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | – |
 
-Weitere Tests des Teams: [`bookings.test.js`](../server/src/models/bookings.test.js) (6) und
+Weitere Tests des Teams: [`bookings.test.js`](../server/src/models/bookings.test.js) (11) und
 [`seatHolds.test.js`](../server/src/models/seatHolds.test.js) (5).
 
 **Befehle:**
 
 ```bash
-npm test                    # alle Unit-Tests (80 Tests, alle grün)
+npm test                    # alle Unit-Tests (85 Tests, alle grün)
 npm run test:coverage       # inkl. Coverage-Bericht -> coverage/index.html
 npm run test:mutation:lb1   # Mutationstest Teil 3  -> reports/mutation/lb1/index.html
 npm run test:lb1            # alles zusammen: Lint + Tests + Coverage + Mutationstest
@@ -309,8 +312,10 @@ Alle LB1-Tests arbeiten mit Mocks, deshalb braucht die Pipeline **keine Datenban
 
 ## 8. Checkliste für das Fachgespräch
 
+- [ ] Team, Klasse und Datum im Kopf dieser Doku eintragen
+- [ ] E-Mail-Bestätigung zur Softwareauswahl versendet (Abschnitt 1)
 - [ ] XAMPP → MySQL starten, `npm run dev`, App im Browser zeigen
-- [ ] `npm test` → 80 Tests grün
+- [ ] `npm test` → 85 Tests grün
 - [ ] Teil 1: `bookingService.test.js` öffnen → `vi.mock`, Fake-DB und einen Test erklären
 - [ ] Teil 2: `loginThrottle.test.js` → steuerbare Uhr und Grenzwerte erklären
 - [ ] Teil 3: `reports/mutation/lb1/index.html` öffnen → 100 %, Mutanten anklicken und erklären

@@ -286,6 +286,36 @@ Reihenfolge der Zeilen · unterschiedlich grosse Säle · Zahlen als Strings (Ma
 Die durchschnittliche Auslastung beträgt **30 %**, der Median 27,5 %. Die schwächste Vorstellung ist zu 5 %
 belegt, die beste zu 60 %.
 
+### Zweite TDD-Einheit auf dem Branch `tdd-statistics`
+
+Parallel ist eine kleinere, rein fachliche TDD-Einheit entstanden, an der sich der Red-Green-Zyklus im
+Fachgespräch Schritt für Schritt nachvollziehen lässt – die Commit-Historie des Branches zeigt jede Iteration
+einzeln.
+
+`averageTicketsPerShowtime(ticketsSold)` in `server/src/domain/statistics.js` berechnet den Mittelwert der
+verkauften Tickets über alle Vorstellungen.
+
+| Phase | Commit auf dem Branch | Inhalt |
+|---|---|---|
+| 🔴 Red | `13227c8` / `19fd73d` | Signatur und erster Test (`[10, 0, 5]` → `5`); der Rumpf gibt eine undefinierte Variable zurück, der Test schlägt fehl |
+| 🔴 Red | `8992d8b` | vier weitere Testfälle als Kommentar vorbereitet |
+| 🟢 Green | `6a5dfc7` | Testfälle aktiviert und Funktion implementiert – alle fünf Tests grün |
+
+| Testfall | Eingabe | Erwartet |
+|---|---|---|
+| Normalfall inkl. Vorstellung ohne Tickets | `[10, 0, 5]` | `5` |
+| nur eine Vorstellung | `[7]` | `7` |
+| nichts verkauft | `[0, 0, 0]` | `0` |
+| Nachkommastelle (`toBeCloseTo`) | `[1, 1, 2]` | `≈ 1.333` |
+| keine Vorstellungen | `[]` | Fehler „Keine Vorstellung vorhanden." |
+
+Der Fall `[1, 1, 2]` → `1.333` zeigt, dass **nicht** gerundet werden darf. Das ursprüngliche JSDoc
+(„Durchschnitt abgerundet") wurde deshalb an das Verhalten angepasst, das die Tests fordern – nicht umgekehrt.
+
+> Der Branch zweigt von einem älteren Stand ab und enthält die Mutationstest-Konfiguration aus Teil 3 noch
+> nicht. Seine Pipeline führt daher Lint und Tests mit Coverage aus, aber keinen Mutationslauf. Beim Merge
+> nach `main` ist die dortige, vollständigere [`ci.yml`](../.github/workflows/ci.yml) zu übernehmen.
+
 ---
 
 ## 7. Teil 5 – Automatisierungsgrad

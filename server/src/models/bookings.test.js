@@ -51,6 +51,20 @@ describe("validateBooking", () => {                     // group of tests
     expect(errors.attributeNames).toEqual(["seat"]);
   });
 
+  it("adds an error when the seat is already taken", () => {
+    // Arrange: prepare the input
+    const showtime = getValidShowtime();
+    const seat = getValidSeat();
+    const booking = getValidBooking();
+
+    //Act
+    const errors = validateBooking(booking, {seat, showtime, seatTaken: true});
+    //Assert
+    expect(errors.on("seat_id")).toEqual(["ist für diese Vorstellung bereits gebucht"]);
+    expect(errors.attributeNames).toEqual(["seat_id"]);
+    expect(errors.fullMessages()).toEqual(["Sitzplatz ist für diese Vorstellung bereits gebucht"]);
+  });
+
   it("adds an error when the qr-code-token is missing", () => {
     // Arrange: prepare the input
     const showtime = getValidShowtime();
@@ -78,17 +92,72 @@ describe("validateBooking", () => {                     // group of tests
     expect(errors.attributeNames).toEqual(["qr_code_token"]);
   });
 
-  it("adds an error when the seat is already taken", () => {
+
+  it("adds an error when the total_price is missing", () => {
     // Arrange: prepare the input
     const showtime = getValidShowtime();
     const seat = getValidSeat();
-    const booking = getValidBooking();
+    const booking = getValidBooking({total_price: null});
+    
+    // Act: call the function
+    const errors = validateBooking(booking, { seat, showtime });
+
+    expect(errors.on("total_price")).toEqual([MESSAGES.blank, MESSAGES.notANumber]);
+    expect(errors.attributeNames).toEqual(["total_price"]);
+  });
+
+  
+  it("adds an error when the price is lower than 0", () => {
+    // Arrange: prepare the input
+    const showtime = getValidShowtime();
+    const seat = getValidSeat();
+    const booking = getValidBooking({total_price: -1});
 
     //Act
-    const errors = validateBooking(booking, {seat, showtime, seatTaken: true});
+    const errors = validateBooking(booking, {seat, showtime});
     //Assert
-    expect(errors.on("seat_id")).toEqual(["ist für diese Vorstellung bereits gebucht"]);
-    expect(errors.attributeNames).toEqual(["seat_id"]);
-    expect(errors.fullMessages()).toEqual(["Sitzplatz ist für diese Vorstellung bereits gebucht"]);
+    expect(errors.on("total_price")).toEqual([MESSAGES.greaterThanOrEqualTo(0)]);
+    expect(errors.attributeNames).toEqual(["total_price"]);
+  });
+
+
+  it("returns no errors on undefined payment_method", () => {
+    // Arrange: prepare the input
+    const showtime = getValidShowtime();
+    const seat = getValidSeat();
+    const booking = getValidBooking({payment_method: undefined});
+
+    //Act
+    const errors = validateBooking(booking, {seat, showtime});
+
+    //Assert
+    expect(errors.any).toBe(false);
+  });
+
+  it("returns no errors on null payment_method", () => {
+    // Arrange: prepare the input
+    const showtime = getValidShowtime();
+    const seat = getValidSeat();
+    const booking = getValidBooking({payment_method: null});
+
+    //Act
+    const errors = validateBooking(booking, {seat, showtime});
+
+    //Assert
+    expect(errors.any).toBe(false);
+  });
+
+  it("adds an error when the payment method is unacceptable", () => {
+    // Arrange: prepare the input
+    const showtime = getValidShowtime();
+    const seat = getValidSeat();
+    const booking = getValidBooking({payment_method: "naturoi"});
+
+    //Act
+    const errors = validateBooking(booking, {seat, showtime});
+
+    //Assert
+    expect(errors.on("payment_method")).toEqual(["ist keine gültige Zahlungsmethode"]);
+    expect(errors.attributeNames).toEqual(["payment_method"]);
   });
 });

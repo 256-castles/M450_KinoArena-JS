@@ -29,6 +29,10 @@ jobs:
       - name: Unit-Tests mit Coverage
         run: npm run test:coverage
 
+      # M450 LB1 / Teil 3: bricht ab, sobald ein Mutant ueberlebt (break = 100).
+      - name: Mutationstests (LB1-Units)
+        run: npm run test:mutation:lb1
+
       - name: Berichte sichern
         if: always()
         uses: actions/upload-artifact@v4

@@ -33,7 +33,7 @@ Aktivitätsprotokoll einsehen und filtern.
 **Voraussetzungen:** Node.js 22 oder neuer, MariaDB 10.4 oder neuer. Am einfachsten über
 [XAMPP](https://www.apachefriends.org/) – es bringt MariaDB und phpMyAdmin mit. Docker wird nicht benötigt.
 
-**1. MariaDB starten:** XAMPP Control Panel öffnen und beim Modul **MySQL** auf *Start* klicken.
+**1. MariaDB starten:** XAMPP Control Panel öffnen und bei Modulen **MySQL** udn **Apache** auf *Start* klicken.
 
 **2. Abhängigkeiten installieren und Konfiguration anlegen**
 

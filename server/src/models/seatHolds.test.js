@@ -12,17 +12,17 @@ import { releaseExpired } from "./seatHolds.js";
       db() hat where(), das wiederum del() hat, welches deletedCount zurückgibt
 */
 // vi.fn() <- schreibt sich alles auf, wie die Funktion aufgerufen wurde.
-function createDbMock({expired = [], deletedCount = 1} = {}) {
+function createDbMock({ expired = [], deletedCount = 1 } = {}) {
     const del = vi.fn().mockResolvedValue(deletedCount);    // mockResolvedValue(), weil es ein Promise lösen muss; dasselbe wie vi.fn(() => Promise.resolve(1)
-    const where = vi.fn((condition) => typeof condition === "string" ? Promise.resolve(expired) : {del}); // Text (Abfrage) -> expired als Promise; Objekt (Löschen)  -> { del}
-    const db = vi.fn(() => ({where}));  // Ein Objekt mit where
-    return {db, where, del};
+    const where = vi.fn((condition) => typeof condition === "string" ? Promise.resolve(expired) : { del }); // Text (Abfrage) -> expired als Promise; Objekt (Löschen)  -> { del}
+    const db = vi.fn(() => ({ where }));  // Ein Objekt mit where
+    return { db, where, del };
 }
 
 describe("releaseExpired", () => {
     it("gibt 0 zurück und löscht nichts, weil keine Reservierung abgelaufen ist", async () => {
         //Arrange
-        const { db, del } = createDbMock({ expired: []});
+        const { db, del } = createDbMock({ expired: [] });
         const onReleased = vi.fn();
 
         //Act
@@ -38,7 +38,7 @@ describe("releaseExpired", () => {
         // Arrange
         const hold1 = { id: 1 };
         const hold2 = { id: 2 };
-        const { db, where, del } = createDbMock({expired: [hold1, hold2]});
+        const { db, where, del } = createDbMock({ expired: [hold1, hold2] });
         const onReleased = vi.fn();
 
         // Act
@@ -57,7 +57,7 @@ describe("releaseExpired", () => {
 
     it("1 Hold abgelaufen, aber onReleased nicht aufgerufen weil schon gelöscht; Rückgabe gleich 1", async () => {
         const hold1 = { id: 1 };
-        const { db, where } = createDbMock({expired: [hold1], deletedCount: 0});
+        const { db, where } = createDbMock({ expired: [hold1], deletedCount: 0 });
         const onReleased = vi.fn();
 
         const count = await releaseExpired(db, { now: new Date(), onReleased });
@@ -66,6 +66,7 @@ describe("releaseExpired", () => {
         expect(onReleased).not.toHaveBeenCalled();
         expect(where).toHaveBeenCalledTimes(2);
         expect(where).toHaveBeenCalledWith({ id: 1 });
+
     });
 
     it("Korrekter Datenbankaufruf mit seat_holds und korrekter Aufruf mit where.", async () => {
@@ -80,8 +81,8 @@ describe("releaseExpired", () => {
     });
 
     it("funktioniert auch ohne dass onReleased übergeben wird", async () => {
-        const { db } = createDbMock({ expired: [{ id: 1}] });
-        
+        const { db } = createDbMock({ expired: [{ id: 1 }] });
+
         const count = await releaseExpired(db, { now: new Date() });
 
         expect(count).toBe(1);

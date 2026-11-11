@@ -66,7 +66,7 @@ describe("releaseExpired", () => {
         expect(onReleased).not.toHaveBeenCalled();
         expect(where).toHaveBeenCalledTimes(2);
         expect(where).toHaveBeenCalledWith({ id: 1 });
-
+        expect(db).toHaveBeenNthCalledWith(2, "seat_holds");
     });
 
     it("Korrekter Datenbankaufruf mit seat_holds und korrekter Aufruf mit where.", async () => {

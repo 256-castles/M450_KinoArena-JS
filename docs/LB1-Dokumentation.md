@@ -42,8 +42,8 @@ Demo-Login: `admin@kinoarena.test` / `password123`
 |---|---|---|---|
 | Teil 1 – Mocking | [`createBookings`](../server/src/services/bookingService.js) | [`bookingService.test.js`](../server/src/services/bookingService.test.js) | 16 |
 | Teil 2 – Logik | [`LoginThrottle` / `throttleKey`](../server/src/domain/loginThrottle.js) | [`loginThrottle.test.js`](../server/src/domain/loginThrottle.test.js) | 35 |
-| Teil 3 – Mutation | beide Units aus Teil 1 + 2 | [`stryker.lb1.config.mjs`](../stryker.lb1.config.mjs) | 90 Mutanten |
-| Teil 4 – TDD | [`statsService.js`](../server/src/services/statsService.js) | [`statsService.test.js`](../server/src/services/statsService.test.js) | 18 |
+| Teil 3 – Mutation | Units aus Teil 1, 2 und 4 | [`stryker.lb1.config.mjs`](../stryker.lb1.config.mjs) | 144 Mutanten |
+| Teil 4 – TDD | [`statsService.js`](../server/src/services/statsService.js) | [`statsService.test.js`](../server/src/services/statsService.test.js) | 20 |
 | Teil 5 – Automatisierung | – | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | – |
 
 Weitere Tests des Teams: [`bookings.test.js`](../server/src/models/bookings.test.js) (11) und
@@ -52,7 +52,7 @@ Weitere Tests des Teams: [`bookings.test.js`](../server/src/models/bookings.test
 **Befehle:**
 
 ```bash
-npm test                    # alle Unit-Tests (85 Tests, alle grün)
+npm test                    # alle Unit-Tests (87 Tests, alle grün)
 npm run test:coverage       # inkl. Coverage-Bericht -> coverage/index.html
 npm run test:mutation:lb1   # Mutationstest Teil 3  -> reports/mutation/lb1/index.html
 npm run test:lb1            # alles zusammen: Lint + Tests + Coverage + Mutationstest
@@ -184,13 +184,20 @@ it("verfaellt exakt im Moment des Ablaufs", () => {
 
 ### Konfiguration
 
-[`stryker.lb1.config.mjs`](../stryker.lb1.config.mjs) mutiert **genau** die beiden Units aus Teil 1 und 2:
+[`stryker.lb1.config.mjs`](../stryker.lb1.config.mjs) mutiert die Units aus Teil 1, 2 und 4:
 
 ```js
-mutate: ["server/src/domain/loginThrottle.js", "server/src/services/bookingService.js"],
+mutate: [
+  "server/src/domain/loginThrottle.js",
+  "server/src/services/bookingService.js",
+  "server/src/services/statsService.js"
+],
 htmlReporter: { fileName: "reports/mutation/lb1/index.html" },
 thresholds: { high: 100, low: 100, break: 100 }   // der Lauf schlägt fehl, sobald ein Mutant überlebt
 ```
+
+Gefordert sind laut Aufgabenstellung nur die Units aus Pflicht 1 und 2. Die TDD-Unit aus Teil 4 ist
+bewusst ergänzt, weil auch dort *„Unit wird komplett getestet“* verlangt ist.
 
 Ausführen mit `npm run test:mutation:lb1`. Der Bericht liegt danach unter `reports/mutation/lb1/index.html`.
 
@@ -199,8 +206,9 @@ Ausführen mit `npm run test:mutation:lb1`. Der Bericht liegt danach unter `repo
 | Datei | Mutanten | Killed | Timeout | Survived | No Coverage | **Score** |
 |---|---|---|---|---|---|---|
 | loginThrottle.js | 43 | 41 | 2 | **0** | 0 | **100 %** |
-| bookingService.js | 47 | 47 | 0 | **0** | 0 | **100 %** |
-| **Total** | **90** | **88** | **2** | **0** | **0** | **100 %** |
+| bookingService.js | 47 | 44 | 3 | **0** | 0 | **100 %** |
+| statsService.js | 54 | 54 | 0 | **0** | 0 | **100 %** |
+| **Total** | **144** | **139** | **5** | **0** | **0** | **100 %** |
 
 > **Timeout** zählt bei Stryker als *erkannt*. Die Mutation erzeugt eine Endlosschleife oder blockiert,
 > deshalb bricht der Test ab. Bei hoher Systemlast können einzelne Mutanten als Timeout statt als Killed
@@ -212,21 +220,32 @@ Die Beispiele stammen direkt aus dem Report. Die rechte Spalte nennt den Test, d
 
 | Mutator | Anzahl | Was wird verändert? | Beispiel (Original → Mutant) | Getötet durch Test |
 |---|---|---|---|---|
-| ConditionalExpression | 21 | Bedingung wird `true` oder `false` | `.filter(hold => seatIdSet.has(…) && …)` → `.filter(hold => true)` | „laesst eine eigene Reservierung die Buchung nicht blockieren“ |
-| BlockStatement | 15 | Funktionsrumpf wird geleert `{}` | `function throttleKey(…) { … }` → `{}` | „setzt den Schluessel aus Praefix, IP und E-Mail zusammen“ |
-| EqualityOperator | 13 | `<=` ↔ `<`, `!==` ↔ `===` | `entry.expiresAt <= this.now()` → `<` | „verfaellt exakt im Moment des Ablaufs“ |
-| StringLiteral | 9 | Text wird zu `""` | `"gehoert nicht zum Saal …"` → `""` | „weist Plaetze ab, die nicht zum Saal gehoeren“ |
-| ObjectLiteral | 7 | Objekt wird zu `{}` | `.where({ id: showtimeId })` → `.where({})` | „laedt die Vorstellung mit pessimistischem Lock …“ |
-| ArrowFunction | 7 | Callback wird `() => undefined` | `seats.map((seat) => seat.id)` → `() => undefined` | „nennt nur den fremd reservierten Platz“ |
-| MethodExpression | 5 | Methode entfernt oder ersetzt | `.trim().toLowerCase()` → `.trim().toUpperCase()` | „setzt den Schluessel aus …“ / „entfernt umschliessende Leerzeichen …“ |
+| ConditionalExpression | 29 | Bedingung wird `true` oder `false` | `.filter(hold => seatIdSet.has(…) && …)` → `.filter(hold => true)` | „laesst eine eigene Reservierung die Buchung nicht blockieren“ |
+| BlockStatement | 21 | Funktionsrumpf wird geleert `{}` | `function throttleKey(…) { … }` → `{}` | „setzt den Schluessel aus Praefix, IP und E-Mail zusammen“ |
+| StringLiteral | 21 | Text wird zu `""` | `.select("showtimes.id as showtime_id", …)` → `.select("", …)` | „aggregiert Buchungen je Vorstellung mit der Saalgroesse“ |
+| EqualityOperator | 17 | `<=` ↔ `<`, `!==` ↔ `===` | `entry.expiresAt <= this.now()` → `<` | „verfaellt exakt im Moment des Ablaufs“ |
+| ArithmeticOperator | 15 | `+` ↔ `-`, `/` ↔ `*` | `failedAttempts(key) + 1` → `- 1` | „zaehlt registrierte Fehlversuche“ |
+| ArrowFunction | 10 | Callback wird `() => undefined` | `seats.map((seat) => seat.id)` → `() => undefined` | „nennt nur den fremd reservierten Platz“ |
+| ObjectLiteral | 10 | Objekt wird zu `{}` | `.where({ id: showtimeId })` → `.where({})` | „laedt die Vorstellung mit pessimistischem Lock …“ |
+| MethodExpression | 7 | Methode entfernt oder ersetzt | `.trim().toLowerCase()` → `.trim().toUpperCase()` | „setzt den Schluessel aus …“ / „entfernt umschliessende Leerzeichen …“ |
 | CallExpression | 4 | Aufruf entfernt | `this.prune()` → *(leer)* | „raeumt abgelaufene Eintraege beim Ueberschreiten der Obergrenze auf“ |
-| ArithmeticOperator | 4 | `+` ↔ `-` | `failedAttempts(key) + 1` → `- 1` | „zaehlt registrierte Fehlversuche“ |
-| LogicalOperator | 2 | `&&` ↔ `\|\|`, `??` → `&&` | `seatIdSet.has(…) && …` → `\|\| …` | „laesst eine eigene Reservierung die Buchung nicht blockieren“ |
-| BooleanLiteral | 2 | Negation entfernt | `if (!showtime)` → `if (showtime)` | „laedt die Vorstellung mit pessimistischem Lock …“ |
+| LogicalOperator | 4 | `&&` ↔ `\|\|`, `??` → `&&` | `!Number.isFinite(booked) \|\| …` → `&& …` | „meldet 0, wenn die Buchungszahl fehlt“ |
+| BooleanLiteral | 4 | Negation entfernt | `if (!showtime)` → `if (showtime)` | „laedt die Vorstellung mit pessimistischem Lock …“ |
+| UnaryOperator | 1 | Vorzeichen gedreht | `rates.at(-1)` → `rates.at(+1)` | „berechnet die Kennzahlen einer einzelnen Vorstellung“ |
 | ArrayDeclaration | 1 | leeres Array wird befüllt | `const bookings = []` → `["Stryker was here"]` | „erzeugt je Platz eine Buchung in der Transaktion“ |
 
-**Erkenntnis:** Die `EqualityOperator`-Mutanten (`<=` → `<`) werden nur durch die Grenzwerttests
+**Erkenntnis 1:** Die `EqualityOperator`-Mutanten (`<=` → `<`) werden nur durch die Grenzwerttests
 (*exakt bei Ablauf*, *1 ms vor Ablauf*) getötet. Ohne diese Tests würden sie überleben.
+
+**Erkenntnis 2:** Beim ersten Lauf über `statsService.js` haben **vier Mutanten überlebt** – obwohl die Datei
+100 % Coverage hatte. Das zeigt den Unterschied zwischen *durchlaufen* und *geprüft*:
+
+| Überlebender Mutant | Ursache | Ergänzter Test |
+|---|---|---|
+| `ConditionalExpression` und `LogicalOperator` in Zeile 17 | kein Test übergab eine unlesbare Buchungszahl | „meldet 0, wenn die Buchungszahl fehlt“ / „… bei einer unlesbaren Buchungszahl“ |
+| zwei `StringLiteral` in Zeile 46 | der Test prüfte `join`, `groupBy` und `count`, aber nicht `select` | Zusicherung auf `select` ergänzt |
+
+Erst nach diesen drei Ergänzungen steht der Score bei 100 %.
 
 Im HTML-Bericht lässt sich jede Datei öffnen. Jeder Mutant ist farbig markiert (grün = getötet), und ein Klick
 zeigt die Änderung und den Test, der sie erkannt hat.
@@ -274,8 +293,12 @@ Im Unit-Test ist `db` gemockt, die Kette `join → leftJoin → groupBy → sele
 ### Edge Cases in den Tests
 
 leere Vorstellung · ausverkauft · Saal mit 0 Plätzen (Division durch 0) · `null` als Saalgrösse ·
-mehr Buchungen als Plätze (Deckelung bei 100 %) · keine Vorstellungen · gerade und ungerade Anzahl (Median) ·
-Reihenfolge der Zeilen · unterschiedlich grosse Säle · Zahlen als Strings (MariaDB liefert `COUNT` als String)
+fehlende und unlesbare Buchungszahl · mehr Buchungen als Plätze (Deckelung bei 100 %) · keine Vorstellungen ·
+gerade und ungerade Anzahl (Median) · Reihenfolge der Zeilen · unterschiedlich grosse Säle ·
+Zahlen als Strings (MariaDB liefert `COUNT` als String)
+
+**Vollständigkeit:** 100 % Coverage **und** 54 von 54 Mutanten getötet (siehe Teil 3). Damit ist die
+TDD-Unit genauso lückenlos belegt wie die Units aus Teil 1 und 2.
 
 ### Ergebnis mit echten Daten (Seed-Datenbank)
 
@@ -345,7 +368,7 @@ Alle LB1-Tests arbeiten mit Mocks, deshalb braucht die Pipeline **keine Datenban
 - [ ] Team, Klasse und Datum im Kopf dieser Doku eintragen
 - [ ] E-Mail-Bestätigung zur Softwareauswahl versendet (Abschnitt 1)
 - [ ] XAMPP → MySQL starten, `npm run dev`, App im Browser zeigen
-- [ ] `npm test` → 85 Tests grün
+- [ ] `npm test` → 87 Tests grün
 - [ ] Teil 1: `bookingService.test.js` öffnen → `vi.mock`, Fake-DB und einen Test erklären
 - [ ] Teil 2: `loginThrottle.test.js` → steuerbare Uhr und Grenzwerte erklären
 - [ ] Teil 3: `reports/mutation/lb1/index.html` öffnen → 100 %, Mutanten anklicken und erklären

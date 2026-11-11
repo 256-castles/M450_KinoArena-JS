@@ -27,6 +27,14 @@ describe("occupancyRate", () => {
         expect(occupancyRate(5, null)).toBe(0);
     });
 
+    it("meldet 0, wenn die Buchungszahl fehlt", () => {
+        expect(occupancyRate(undefined, 100)).toBe(0);
+    });
+
+    it("meldet 0 bei einer unlesbaren Buchungszahl", () => {
+        expect(occupancyRate("keine Zahl", 100)).toBe(0);
+    });
+
     it("deckelt die Quote bei 1, falls mehr Buchungen als Plaetze gemeldet werden", () => {
         expect(occupancyRate(130, 120)).toBe(1);
     });
@@ -159,6 +167,7 @@ describe("occupancyStats", () => {
         expect(query.join).toHaveBeenCalledWith("auditoria", "auditoria.id", "showtimes.auditorium_id");
         expect(query.leftJoin).toHaveBeenCalledWith("bookings", "bookings.showtime_id", "showtimes.id");
         expect(query.groupBy).toHaveBeenCalledWith("showtimes.id", "auditoria.total_seats");
+        expect(query.select).toHaveBeenCalledWith("showtimes.id as showtime_id", "auditoria.total_seats");
         expect(query.count).toHaveBeenCalledWith("bookings.id as booked_seats");
     });
 
